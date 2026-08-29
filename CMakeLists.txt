@@ -21,21 +21,27 @@ add_executable(${PROJECT_NAME}
   main.c
 )
 
-pico_set_program_version(${PROJECT_NAME} "0.1")
+pico_set_program_version(${PROJECT_NAME} "0.2")
 
 # Enable USB output so we can see printf
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
-pico_enable_stdio_uart(${PROJECT_NAME} 1)
+pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
 # Add the standard include files to the build
-# target_include_directories(${PROJECT_NAME} PRIVATE
-#   ${CMAKE_CURRENT_LIST_DIR}
-# )
-#
+target_include_directories(${PROJECT_NAME} PRIVATE
+  ${CMAKE_CURRENT_LIST_DIR}
+  ${CMAKE_CURRENT_LIST_DIR}/config
+  ${CMAKE_CURRENT_LIST_DIR}/lib
+  # ${CMAKE_CURRENT_LIST_DIR}/src
+)
+
 # Add any user requested libraries
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PRIVATE
   pico_stdlib
-  pico_cyw43_arch_none
+  pico_cyw43_arch_lwip_threadsafe_background
+  # pico_cyw43_arch_poll
+  pico_cyw43_driver
+  pico_lwip
 )
 
 # create map/bin/hex/uf2 file in addition to ELF.

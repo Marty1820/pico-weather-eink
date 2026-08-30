@@ -46,14 +46,15 @@ weather_station/
 ├── config/
 │   └── secrets.h           # WiFi credentials & location (GitIgnored)
 ├── src/
-│   ├── wifi.c              # Wi-Fi initialization and connection
-│   ├── weather.c           # HTTP client for wttr.in
-│   └── display_helper.c    # Font rendering helper (optional)
+│   ├── wifi.c/h            # Wi-Fi initialization and connection
+│   └── weather.c/h         # HTTP client for wttr.in
 ├── lib/
+│   ├── Debug.h             # Waveshare display driver debugging
 │   ├── EPD_2in9b_V3.c/h    # Waveshare display driver
 │   ├── DEV_Config.c/h      # Low-level SPI/GPIO abstraction
 │   ├── GUI_Paint.c/h       # Waveshare drawing library
-│   └── font16.c            # 16px bitmap font
+│   ├── font16.c/fonts.h    # 16px bitmap font
+│   └── lwipopts.h          # Common settings for Networking
 └── build/                  # Generated build files (GitIgnored)
 ```
 

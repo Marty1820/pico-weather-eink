@@ -58,15 +58,9 @@ int main() {
   // Parameters: Image, Width, Height, Rotate, Color
   // Rotate: 0=0deg, 1=90deg, 2=180deg, 3=270deg
   // Color: WHITE (0xFF) or BLACK (0x00)
-  Paint_NewImage(BlackImage, EPD_2IN9B_V3_WIDTH, EPD_2IN9B_V3_HEIGHT, 0, WHITE);
-  Paint_NewImage(RedImage, EPD_2IN9B_V3_WIDTH, EPD_2IN9B_V3_HEIGHT, 0, WHITE);
-
-  // Clear Buffers
-  Paint_SelectImage(BlackImage);
-  Paint_Clear(WHITE);
-
-  Paint_SelectImage(RedImage);
-  Paint_Clear(WHITE);
+  Paint_NewImage(BlackImage, EPD_2IN9B_V3_WIDTH, EPD_2IN9B_V3_HEIGHT, 90,
+                 WHITE);
+  Paint_NewImage(RedImage, EPD_2IN9B_V3_WIDTH, EPD_2IN9B_V3_HEIGHT, 90, WHITE);
 
   // Main loop
   while (true) {
@@ -76,29 +70,51 @@ int main() {
     printf("Draw String\n");
 
     // Fetch Weather (wttr.in - HTTP)
-    // if (fetch_weather_data()) {
-    Paint_SelectImage(BlackImage);
-    Paint_Clear(WHITE);
+    if (fetch_weather_data()) {
+      EPD_2IN9B_V3_Init();
+      // Clear Buffers
+      Paint_SelectImage(BlackImage);
+      Paint_Clear(WHITE);
 
-    Paint_SelectImage(BlackImage);
-    // Left, top, "11 chars max", &Font16, background, text color);
-    Paint_DrawString_EN(4, 0, "12345678901", &Font16, WHITE, RED);
-    // Paint_DrawString_EN(10, 10, weather_ascii_data, &Font16, WHITE, BLACK);
+      Paint_SelectImage(RedImage);
+      Paint_Clear(WHITE);
 
-    // Update
-    EPD_2IN9B_V3_Display(BlackImage, RedImage);
+      // Prepare to draw
+      int x = 4;
+      int y = 5;
+      int line_height = Font16.Height; // Usually 16
 
-    EPD_2IN9B_V3_Sleep();
-    printf("Weather displayed.\n");
-    // } else {
-    //   printf("Weather Failed.\n");
-    // }
+      // Mutable copy of string
+      char temp_buffer[2048];
+      strncpy(temp_buffer, weather_ascii_data, sizeof(temp_buffer) - 1);
+      temp_buffer[sizeof(temp_buffer) - 1] = '\0';
+
+      // Draw Line by Line
+      char *line = strtok(temp_buffer, "\n");
+      while (line != NULL) {
+        // Skip empty lines
+        if (strlen(line) > 0) {
+          Paint_DrawString_EN(x, y, line, &Font16, WHITE, BLACK);
+          y += line_height;
+        }
+        line = strtok(NULL, "\n");
+      }
+
+      // Update
+      EPD_2IN9B_V3_Display(BlackImage, RedImage);
+
+      EPD_2IN9B_V3_Sleep();
+      printf("Weather displayed.\n");
+    } else {
+      printf("Weather Failed.\n");
+    }
 
     // LED off
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
     // Sleep 1hr
     printf("Sleeping for 1 hr\n");
     // sleep_ms(3600000);
-    sleep_ms(30000);
+    sleep_ms(3600000);
   }
+  return 0;
 }

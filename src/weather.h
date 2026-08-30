@@ -7,7 +7,7 @@
 bool fetch_weather_data(void);
 
 // Global results
-extern char weather_ascii_data[];
+extern char weather_ascii_data[2048];
 extern bool weather_fetched;
 
 #endif

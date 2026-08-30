@@ -19,6 +19,7 @@ pico_sdk_init()
 add_executable(${PROJECT_NAME}
   main.c
   src/wifi.c
+  src/network.c
   src/weather.c
   lib/EPD_2in9b_V3.c
   lib/DEV_Config.c

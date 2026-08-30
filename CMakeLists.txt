@@ -26,7 +26,7 @@ add_executable(${PROJECT_NAME}
   lib/GUI_Paint.c
 )
 
-pico_set_program_version(${PROJECT_NAME} "1.0")
+pico_set_program_version(${PROJECT_NAME} "1.3")
 
 # Enable USB output so we can see printf
 pico_enable_stdio_usb(${PROJECT_NAME} 1)

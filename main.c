@@ -51,6 +51,45 @@ static void cleanup(void) {
   }
 }
 
+static void trim_to_width(char *data, int max_width) {
+  char temp[2048];
+  char lines[15][256];
+  int num_lines = 0;
+
+  // Split into lines
+  strcpy(temp, data);
+  char *line = strtok(temp, "\n");
+  while (line && num_lines < 15) {
+    strcpy(lines[num_lines], line);
+    num_lines++;
+    line = strtok(NULL, "\n");
+  }
+
+  // Find the longest line length
+  int max_len = 0;
+  for (int i = 0; i < num_lines; i++) {
+    int len = strlen(lines[i]);
+    if (len > max_len)
+      max_len = len;
+  }
+
+  // Calculate how many chars to trim from the front
+  int trim = max_len > max_width ? max_len - max_width : 0;
+
+  // Rebuild: trim front, keep rightmost 26 chars
+  data[0] = '\0';
+  for (int i = 0; i < num_lines; i++) {
+    int len = strlen(lines[i]);
+    int start = (trim < len) ? trim : len; // Don't go past line length
+    int keep = len - start;
+    if (keep > max_width)
+      keep = max_width;
+
+    strncat(data, lines[i] + start, keep);
+    strcat(data, "\n");
+  }
+}
+
 int main(void) {
   // Initialize stdio
   stdio_init_all();
@@ -115,6 +154,9 @@ int main(void) {
       int x = 0;
       int y = 0;
       int line_height = Font16.Height; // Usually 16
+
+      // Trim text to fit display
+      trim_to_width(weather_ascii_data, MAX_LINE_LENGTH);
 
       // Mutable copy of string
       char temp_buffer[TEMP_BUFFER_SIZE];

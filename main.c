@@ -1,10 +1,7 @@
 #include "pico/printf.h"
 #include "pico/stdlib.h"
+#include "weather.h"
 #include "wifi.h"
-
-#ifndef LED_DELAY_MS
-#define LED_DELAY_MS 5000
-#endif
 
 int main() {
   // Initialize stdio
@@ -23,12 +20,23 @@ int main() {
     }
   }
 
+  printf("Wi-Fi Ready. Starting Data Collection.\n");
+
   // Main loop
   while (true) {
     // Toggle LED
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
-    sleep_ms(LED_DELAY_MS);
+
+    // Fetch Weather (wttr.in - HTTP)
+    if (fetch_weather_data()) {
+      printf("Weather succeeded\n");
+    } else {
+      printf("Weather Failed.\n");
+    }
+
+    // LED off
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
-    sleep_ms(LED_DELAY_MS);
+    // Sleep 1hr
+    sleep_ms(3600000);
   }
 }

@@ -1,6 +1,7 @@
-#include "wifi.h"
-#include "config/secrets.h"
 #include "pico/printf.h"
+
+#include "config/secrets.h"
+#include "wifi.h"
 
 static bool g_wifi_connected = false;
 static const char *s_ip_str = NULL;

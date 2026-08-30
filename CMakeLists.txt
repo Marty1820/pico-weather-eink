@@ -19,9 +19,10 @@ pico_sdk_init()
 add_executable(${PROJECT_NAME}
   main.c
   src/wifi.c
+  src/weather.c
 )
 
-pico_set_program_version(${PROJECT_NAME} "0.2")
+pico_set_program_version(${PROJECT_NAME} "0.3")
 
 # Enable USB output so we can see printf
 pico_enable_stdio_usb(${PROJECT_NAME} 1)

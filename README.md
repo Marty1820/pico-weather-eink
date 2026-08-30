@@ -1,21 +1,155 @@
-# PicoW future Weather Station
+# PicoW Weather Station
 
-Will eventually connect to network download weather from openmeteo and aqi from aqicn then display it on a Waveshare ePaper 2.9B display
+A self-powered, e-paper weather station built with the **Raspberry Pi Pico W**, displaying live weather conditions from **wttr.in** on a **Waveshare 2.9" Tri-color E-Paper Display**.
 
-## How to compile
+The device connects to Wi-Fi, fetches ASCII art weather data, renders it on the screen, and then enters a deep sleep state for 1 hour to conserve power.
 
-`cmake` (I know I tried to go without but couldn't figure out pico-sdk
+## Features
 
-```bash
-cmake -S . -B build -DPICO_BOARD=pico_w -DPICO_SDK_PATH=~/Projects/pico/pico_c/pico-sdk/
+- **Wi-Fi Connectivity:** Connects to your local network using pico_cyw43_arch.
+- **Live Weather Data:** Fetches real-time conditions (temperature, wind, precipitation) from wttr.in.
+- **ASCII Art Rendering:** Displays beautiful terminal-style weather graphics on the e-paper display.
+- **Power Efficient:** Sleeps for 1 hour between updates to maximize battery life.
+- **Modular Design:** Clean separation of Wi-Fi, weather fetching, and display logic.
+
+## Hardware Requirements
+
+- Raspberry Pi Pico W
+- Waveshare 2.9" B (Tri-color) E-Paper HAT or breakout board
+  - Note: This project uses the V3/V4 driver files (EPD_2in9b_V3).
+
+## Wiring Guide
+
+Based on the configuration in DEV_Config.c:
+
+| Pico Pin | Waveshare Pin | Function     |
+| -------- | ------------- | ------------ |
+| GPIO 12  | RST           | Reset        |
+| GPIO 8   | DC            | Data/Command |
+| GPIO 9   | CS            | Chip Select  |
+| GPIO 13  | BUSY          | Busy Signal  |
+| GPIO 10  | SCK           | SPI Clock    |
+| GPIO 11  | MOSI          | SPI Data     |
+| 3V3      | VCC           | Power (3.3V) |
+| GND      | GND           | Ground       |
+
+Ensure your _DEV_Config.c_ pin definitions match your physical wiring.
+
+## Software Architecture
+
+### Project Structure
+
+```text
+weather_station/
+├── CMakeLists.txt          # Build configuration
+├── main.c                  # Entry point, loop, and display control
+├── config/
+│   └── secrets.h           # WiFi credentials & location (GitIgnored)
+├── src/
+│   ├── wifi.c              # Wi-Fi initialization and connection
+│   ├── weather.c           # HTTP client for wttr.in
+│   └── display_helper.c    # Font rendering helper (optional)
+├── lib/
+│   ├── EPD_2in9b_V3.c/h    # Waveshare display driver
+│   ├── DEV_Config.c/h      # Low-level SPI/GPIO abstraction
+│   ├── GUI_Paint.c/h       # Waveshare drawing library
+│   └── font16.c            # 16px bitmap font
+└── build/                  # Generated build files (GitIgnored)
 ```
 
-*Change the board and sdk-path to proper locations
+### Key Components
 
-```bash
-cmake --build build -j8
+1. **Wi-Fi (src/wifi.c):** Handles pico_cyw43_arch initialization and connection.
+2. **Weather (src/weather.c):** Uses raw TCP/LWIP to fetch ASCII text from wttr.in via a hardcoded IP (to bypass DNS issues).
+3. **Display (main.c | GUI_Paint):**
+
+- Initializes the EPD driver.
+- Allocates framebuffers.
+- Parses the ASCII string line-by-line.
+- Renders text using the `GUI_Paint` library.
+
+## Configuration
+
+### 1. Location
+
+Edit `config/secrets.h` t oset your latitude and longitude:
+
+```C
+#define LATITUDE  51.5074
+#define LONGITUDE -0.1278
 ```
 
-Copy the file `./build/file_name.utf2` to the pico
+### 2. Wi-Fi Credentials
 
-connect to console with `screen /dev/ttyACM0 115200`
+Edit `config/secrets.h` with your network details:
+
+```C
+#define WIFI_SSID "YourNetworkName"
+#define WIFI_PASS "YourPassword"
+```
+
+### 3. IP Address (Optional)
+
+If wttr.in DNS resolution fails, update the hardcoded ip in `src/weather.c`:
+
+```C
+const char *target_ip_str = "5.9.243.187"; // Replace with current wttr.in IP
+```
+
+## Building and Flashing
+
+### Prerequisites
+
+- (Raspberry Pi Pico SDK)[https://github.com/raspberrypi/pico-sdk]
+- CMake 3.13+
+- ARM GCC toolchain (arm-none-eabi-gcc)
+
+### Build commands
+
+```bash
+# Configure
+cmake -S . -B build -DPICO_BOARD=pico_w -DPICO_SDK_PATH=/PATH/TO/pico-sdk/
+
+# Build
+cmake --build build -j$(nproc)
+```
+
+### Flashing
+
+1. Hold the **BOOTSEL** button on the Pico W while plugging it into your computer.
+2. Drage and drop `build/pico_weather_station.uf2` onto the RPI-RP2 drive.
+3. The device will reboot and start the weather loop.
+
+## Usage
+
+1. **Power On:** The device connect to Wi-Fi.
+2. **Fetch:** Retrieves weather data from wttr.in.
+3. **Display:** Renders teh ACSII art on the e-paper screen.
+4. **Sleep**: Enters a 1-hour sleep cycle.
+5. **Repeat:** Wakes up and repeats.
+
+Note: The e-paper display retains the image even when powered off, so the screen remains visible during the sleep cycle.
+
+## Troubleshooting
+
+### "Full Red" Screen
+
+- Ensure DEV_Module_Init() is called only once.
+- Check wiring for the `BUSY` pin.
+
+### No Wi-Fi Connection
+
+- Verify SSID/PASS in `secrets.h`
+
+### Text Cut Off
+
+- Rotate the display by chaning Paint_NewImage roation to 90 degrees.
+- Try a smaller font from Waveshare
+
+### License
+
+This project uses components from the Raspberry Pi Pico SDK and Waveshare. Please respect the licensing terms of those libraries.
+
+---
+
+Built with blood, sweat, and tears using a Raspberry Pi Pico W

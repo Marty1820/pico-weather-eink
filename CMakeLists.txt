@@ -10,7 +10,7 @@ set(PICO_BOARD pico_w CACHE STRING "Board type")
 include(pico_sdk_import.cmake)
 
 # Define project name
-project(pico_test)
+project(pico_weather_station)
 
 # initialize the Raspberry Pi Pico SDK
 pico_sdk_init()
@@ -25,7 +25,7 @@ add_executable(${PROJECT_NAME}
   lib/GUI_Paint.c
 )
 
-pico_set_program_version(${PROJECT_NAME} "0.3")
+pico_set_program_version(${PROJECT_NAME} "1.0")
 
 # Enable USB output so we can see printf
 pico_enable_stdio_usb(${PROJECT_NAME} 1)

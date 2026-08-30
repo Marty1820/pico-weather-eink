@@ -90,6 +90,45 @@ static void trim_to_width(char *data, int max_width) {
   }
 }
 
+typedef enum { COLOR_BLACK, COLOR_RED } Color;
+
+static void render_display(Color color_type, const char *data) {
+  // Select correct buffer
+  if (color_type == COLOR_RED) {
+    Paint_SelectImage(RedImage);
+  } else {
+    // Default to Black if not "red"
+    Paint_SelectImage(BlackImage);
+  }
+
+  // Prepare to draw
+  int x = 0;
+  int y = 0;
+  int line_height = Font16.Height; // Usually 16
+
+  // Trim text to fit display
+  trim_to_width(data, MAX_LINE_LENGTH);
+
+  // Mutable copy of string
+  char temp_buffer[TEMP_BUFFER_SIZE];
+  strncpy(temp_buffer, data, sizeof(temp_buffer) - 1);
+  temp_buffer[sizeof(temp_buffer) - 1] = '\0';
+
+  // Draw Line by Line
+  char *line = strtok(temp_buffer, "\n");
+  while (line != NULL) {
+    // Skip empty lines
+    if (strlen(line) > 0) {
+      Paint_DrawString_EN(x, y, line, &Font16, WHITE, BLACK);
+      y += line_height;
+    }
+    line = strtok(NULL, "\n");
+  }
+
+  // Update Display
+  EPD_2IN9B_V3_Display(BlackImage, RedImage);
+}
+
 int main(void) {
   // Initialize stdio
   stdio_init_all();
@@ -150,32 +189,8 @@ int main(void) {
       Paint_SelectImage(RedImage);
       Paint_Clear(WHITE);
 
-      // Prepare to draw
-      int x = 0;
-      int y = 0;
-      int line_height = Font16.Height; // Usually 16
-
-      // Trim text to fit display
-      trim_to_width(weather_ascii_data, MAX_LINE_LENGTH);
-
-      // Mutable copy of string
-      char temp_buffer[TEMP_BUFFER_SIZE];
-      strncpy(temp_buffer, weather_ascii_data, sizeof(temp_buffer) - 1);
-      temp_buffer[sizeof(temp_buffer) - 1] = '\0';
-
-      // Draw Line by Line
-      char *line = strtok(temp_buffer, "\n");
-      while (line != NULL) {
-        // Skip empty lines
-        if (strlen(line) > 0) {
-          Paint_DrawString_EN(x, y, line, &Font16, WHITE, BLACK);
-          y += line_height;
-        }
-        line = strtok(NULL, "\n");
-      }
-
-      // Update
-      EPD_2IN9B_V3_Display(BlackImage, RedImage);
+      // Draw display
+      render_display(BLACK, weather_ascii_data);
 
       EPD_2IN9B_V3_Sleep();
       printf("Weather displayed.\n");

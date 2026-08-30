@@ -22,6 +22,7 @@ add_executable(${PROJECT_NAME}
   src/weather.c
   lib/EPD_2in9b_V3.c
   lib/DEV_Config.c
+  lib/GUI_Paint.c
 )
 
 pico_set_program_version(${PROJECT_NAME} "0.3")

@@ -154,11 +154,11 @@ bool fetch_weather_data(void) {
 
     rx_len = clean_len;
 
-    // printf("\n--- WEATHER DATA ---\n%s\n--- END ---\n", weather_ascii_data);
+    printf("\n--- WEATHER DATA ---\n%s\n--- END ---\n", weather_ascii_data);
     weather_fetched = true;
     return true;
   } else {
-    // printf("\n--- RAW RESPONSE ---\n%s\n--- END ---\n", weather_ascii_data);
+    printf("\n--- RAW RESPONSE ---\n%s\n--- END ---\n", weather_ascii_data);
     return false;
   }
 }

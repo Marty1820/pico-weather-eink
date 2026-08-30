@@ -138,7 +138,27 @@ bool fetch_weather_data(void) {
   }
 
   weather_ascii_data[rx_len] = '\0';
-  printf("\n--- WEATHER DATA ---\n%s\n--- END ---\n", weather_ascii_data);
-  weather_fetched = true;
-  return true;
+
+  // Strip HTTP Headers
+  char *header_end = strstr(weather_ascii_data, "\r\n\r\n");
+
+  if (header_end) {
+    // Move the pointer past the headers
+    char *clean_data = header_end + 4;
+
+    // Calc new length
+    size_t clean_len = strlen(clean_data);
+
+    // Shift data to beginning of buffer
+    memmove(weather_ascii_data, clean_data, clean_len + 1); // +1 for null term
+
+    rx_len = clean_len;
+
+    // printf("\n--- WEATHER DATA ---\n%s\n--- END ---\n", weather_ascii_data);
+    weather_fetched = true;
+    return true;
+  } else {
+    // printf("\n--- RAW RESPONSE ---\n%s\n--- END ---\n", weather_ascii_data);
+    return false;
+  }
 }

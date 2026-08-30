@@ -20,6 +20,8 @@ add_executable(${PROJECT_NAME}
   main.c
   src/wifi.c
   src/weather.c
+  lib/EPD_2in9b_V3.c
+  lib/DEV_Config.c
 )
 
 pico_set_program_version(${PROJECT_NAME} "0.3")
@@ -42,6 +44,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   pico_cyw43_arch_lwip_threadsafe_background
   pico_cyw43_driver
   pico_lwip
+  hardware_spi
+  hardware_gpio
+  hardware_dma
 )
 
 # create map/bin/hex/uf2 file in addition to ELF.

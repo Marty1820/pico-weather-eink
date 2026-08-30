@@ -9,35 +9,65 @@
 #include "GUI_Paint.h"
 #include "font16.c"
 
+// Configuration Constants
+#define SLEEP_DURATION_MS 3600000 // 1 hour
+#define MAX_LINE_LENGTH 26        // Characters across display
+#define LED_ERROR_BLINK_MS 200
+#define STARTUP_DELAY_MS 1000
+#define TEMP_BUFFER_SIZE 2048
+
 // Global pointers for buffers (malloced)
 static UBYTE *BlackImage = NULL;
 static UBYTE *RedImage = NULL;
 
-int main() {
+static void display_error_pattern(void) {
+  // Blink LED rapidly on error
+  while (true) {
+    cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
+    sleep_ms(LED_ERROR_BLINK_MS);
+    cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
+    sleep_ms(LED_ERROR_BLINK_MS);
+  }
+}
+
+static bool initialize_display(void) {
+  printf("Initializing Display...\n");
+  if (DEV_Module_Init() != 0) {
+    printf("DEV_Module_Init failed\n");
+  }
+  EPD_2IN9B_V3_Init();
+  printf("EPD Initialized\n");
+  return true;
+}
+
+static void cleanup(void) {
+  if (BlackImage != NULL) {
+    free(BlackImage);
+    BlackImage = NULL;
+  }
+  if (RedImage != NULL) {
+    free(RedImage);
+    RedImage = NULL;
+  }
+}
+
+int main(void) {
   // Initialize stdio
   stdio_init_all();
-  sleep_ms(2000);
+  sleep_ms(STARTUP_DELAY_MS);
 
   // Initialize Wi-Fi
   if (!wifi_init_and_connect()) {
     printf("Wi-Fi initialization failed. Entering error loop.\n");
-    // Blink LED rapidly on error
-    while (true) {
-      cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
-      sleep_ms(200);
-      cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
-      sleep_ms(200);
-    }
+    display_error_pattern();
+    return -1;
   }
 
   // Initialize the Display
-  printf("Initializing Display...\n");
-  if (DEV_Module_Init() != 0) {
-    printf("DEV_Module_Init failed\n");
+  if (!initialize_display()) {
+    printf("Display initialization failed.\n");
     return -1;
   }
-  EPD_2IN9B_V3_Init();
-  printf("EPD Initialiezed\n");
 
   // Allocate Buffers
   UWORD Imagesize =
@@ -62,12 +92,14 @@ int main() {
                  WHITE);
   Paint_NewImage(RedImage, EPD_2IN9B_V3_WIDTH, EPD_2IN9B_V3_HEIGHT, 90, WHITE);
 
+  printf("Initialization complete. Starting main loop.\n");
+
   // Main loop
   while (true) {
     // Toggle LED
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
 
-    printf("Draw String\n");
+    printf("Fetching weather data...\n");
 
     // Fetch Weather (wttr.in - HTTP)
     if (fetch_weather_data()) {
@@ -80,12 +112,12 @@ int main() {
       Paint_Clear(WHITE);
 
       // Prepare to draw
-      int x = 4;
-      int y = 5;
+      int x = 0;
+      int y = 0;
       int line_height = Font16.Height; // Usually 16
 
       // Mutable copy of string
-      char temp_buffer[2048];
+      char temp_buffer[TEMP_BUFFER_SIZE];
       strncpy(temp_buffer, weather_ascii_data, sizeof(temp_buffer) - 1);
       temp_buffer[sizeof(temp_buffer) - 1] = '\0';
 
@@ -111,10 +143,12 @@ int main() {
 
     // LED off
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
-    // Sleep 1hr
-    printf("Sleeping for 1 hr\n");
-    // sleep_ms(3600000);
-    sleep_ms(3600000);
+
+    // Sleep
+    printf("Sleeping for %d ms\n", SLEEP_DURATION_MS);
+    sleep_ms(SLEEP_DURATION_MS);
   }
+  // Unreachable
+  cleanup();
   return 0;
 }

@@ -91,8 +91,8 @@ bool fetch_weather_data(void) {
   memset(weather_ascii_data, 0, sizeof(weather_ascii_data));
 
   // Build path dynamically
-  snprintf(current_path, sizeof(current_path), "/%.4f,%.4f?um0AdFnQT",
-           (double)LATITUDE, (double)LONGITUDE);
+  snprintf(current_path, sizeof(current_path), "/%.4f,%.4f?%s",
+           (double)LATITUDE, (double)LONGITUDE, OPTS);
 
   printf("Constructed path: %s\n", current_path);
 

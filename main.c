@@ -10,8 +10,8 @@
 #define SLEEP_DURATION_MS 3600000 // 1 hour
 #define LED_ERROR_BLINK_MS 200
 #define STARTUP_DELAY_MS 1000
-#define HEARTBEAT_INTERVAL_MS 9000
-#define HEARTBEAT_PULSE_MS 1000
+#define HEARTBEAT_INTERVAL_MS 9900
+#define HEARTBEAT_PULSE_MS 100
 
 // Fatal error: blink LED forever
 static void fatal_blink(void) {

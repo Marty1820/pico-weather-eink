@@ -43,7 +43,7 @@ add_executable(${PROJECT_NAME}
   src/display.c
 )
 
-pico_set_program_version(${PROJECT_NAME} "2.0")
+pico_set_program_version(${PROJECT_NAME} "2.1")
 
 # Enable USB output so we can see printf
 pico_enable_stdio_usb(${PROJECT_NAME} 1)

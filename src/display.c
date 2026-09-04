@@ -76,6 +76,8 @@ bool display_render(const char *text) {
     return false;
   }
 
+  EPD_2IN9B_V3_Init(); // Wake from sleep state
+
   Paint_SelectImage(black_image);
   Paint_Clear(WHITE);
   Paint_SelectImage(red_image);

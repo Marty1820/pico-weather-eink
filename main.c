@@ -10,6 +10,8 @@
 #define SLEEP_DURATION_MS 3600000 // 1 hour
 #define LED_ERROR_BLINK_MS 200
 #define STARTUP_DELAY_MS 1000
+#define HEARTBEAT_INTERVAL_MS 9000
+#define HEARTBEAT_PULSE_MS 1000
 
 // Fatal error: blink LED forever
 static void fatal_blink(void) {
@@ -18,6 +20,23 @@ static void fatal_blink(void) {
     sleep_ms(LED_ERROR_BLINK_MS);
     cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
     sleep_ms(LED_ERROR_BLINK_MS);
+  }
+}
+
+// Pulse LED during sleep
+static void sleep_with_heartbeat(uint32_t duration_ms) {
+  uint32_t remaining = duration_ms;
+  while (remaining > 0) {
+    uint32_t slice =
+        (remaining < HEARTBEAT_INTERVAL_MS) ? remaining : HEARTBEAT_INTERVAL_MS;
+    cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 1);
+    sleep_ms(HEARTBEAT_PULSE_MS);
+    cyw43_arch_gpio_put(CYW43_WL_GPIO_LED_PIN, 0);
+
+    if (slice > HEARTBEAT_PULSE_MS) {
+      sleep_ms(slice - HEARTBEAT_PULSE_MS);
+    }
+    remaining -= slice;
   }
 }
 
@@ -60,6 +79,6 @@ int main(void) {
 
     // Sleep
     printf("Sleeping for %d ms\n", SLEEP_DURATION_MS);
-    sleep_ms(SLEEP_DURATION_MS);
+    sleep_with_heartbeat(SLEEP_DURATION_MS);
   }
 }

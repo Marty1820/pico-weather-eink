@@ -15,18 +15,35 @@ project(pico_weather_station)
 # initialize the Raspberry Pi Pico SDK
 pico_sdk_init()
 
+# Vendroed display driver + fonts as static library
+# Make display changes easy
+add_library(epd STATIC
+  lib/EPD_2in9b_V3.c
+  lib/DEV_Config.c
+  lib/GUI_Paint.c
+  lib/font16.c
+)
+
+target_include_directories(epd PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/lib
+)
+
+target_link_libraries(epd PUBLIC
+  pico_stdlib
+  hardware_spi
+  hardware_gpio
+)
+
 # Add executables
 add_executable(${PROJECT_NAME}
   main.c
   src/wifi.c
   src/network.c
   src/weather.c
-  lib/EPD_2in9b_V3.c
-  lib/DEV_Config.c
-  lib/GUI_Paint.c
+  src/display.c
 )
 
-pico_set_program_version(${PROJECT_NAME} "1.4")
+pico_set_program_version(${PROJECT_NAME} "2.0")
 
 # Enable USB output so we can see printf
 pico_enable_stdio_usb(${PROJECT_NAME} 1)
@@ -37,18 +54,16 @@ target_include_directories(${PROJECT_NAME} PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
   ${CMAKE_CURRENT_LIST_DIR}/config
   ${CMAKE_CURRENT_LIST_DIR}/src
-  ${CMAKE_CURRENT_LIST_DIR}/lib
 )
 
 # Add any user requested libraries
 target_link_libraries(${PROJECT_NAME} PRIVATE
+  epd
   pico_stdlib
   pico_cyw43_arch_lwip_threadsafe_background
   pico_cyw43_driver
   pico_lwip
-  hardware_spi
-  hardware_gpio
-  hardware_dma
+  pico_lwip_http
 )
 
 # create map/bin/hex/uf2 file in addition to ELF.

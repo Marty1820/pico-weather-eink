@@ -6,8 +6,8 @@
 // Fetch weather data from wttr.in (HTTP)
 bool fetch_weather_data(void);
 
-// Global results
-extern char weather_ascii_data[2048];
-extern bool weather_fetched;
+// Pointer to internal weather data.
+// Valid only after a successful fetch_weather_data() call
+const char *weather_get_data(void);
 
 #endif

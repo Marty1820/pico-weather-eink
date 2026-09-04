@@ -9,8 +9,8 @@ The device connects to Wi-Fi, fetches ASCII art weather data, renders it on the 
 - **Wi-Fi Connectivity:** Connects to your local network using pico_cyw43_arch.
 - **Live Weather Data:** Fetches real-time conditions (temperature, wind, precipitation) from wttr.in.
 - **ASCII Art Rendering:** Displays beautiful terminal-style weather graphics on the e-paper display.
-- **Power Efficient:** Sleeps for 1 hour between updates to maximize battery life.
-- **Modular Design:** Clean separation of Wi-Fi, weather fetching, and display logic.
+- **Power Efficient:** Idles 1 hour between updates; the e-paper display retains the image with zero power draw while the device waits.
+- **Modular Design:** Layered architecture — main.c orchestrates independent wifi, weather, and display modules over a shared network abstraction (lwIP's built-in HTTP client), with vendored Waveshare drivers isolated in an epd static library.
 
 ## Hardware Requirements
 
@@ -42,32 +42,27 @@ Ensure your _DEV_Config.c_ pin definitions match your physical wiring.
 ```text
 weather_station/
 ├── CMakeLists.txt          # Build configuration
-├── main.c                  # Entry point, loop, and display control
+├── main.c                  # Entry point and main loop
 ├── config/
 │   └── secrets.h           # WiFi credentials & location (GitIgnored)
 ├── src/
 │   ├── wifi.c/h            # Wi-Fi initialization and connection
-│   └── weather.c/h         # HTTP client for wttr.in
+│   ├── network.c/h         # HTTP GET via lwIP's built-in http client
+│   ├── weather.c/h         # Fetches and cleans wttr.in data
+│   └── display.c/h         # Panel init, buffers, text layout, render
 ├── lib/
 │   ├── Debug.h             # Waveshare display driver debugging
 │   ├── EPD_2in9b_V3.c/h    # Waveshare display driver
 │   ├── DEV_Config.c/h      # Low-level SPI/GPIO abstraction
 │   ├── GUI_Paint.c/h       # Waveshare drawing library
 │   ├── font16.c/fonts.h    # 16px bitmap font
-│   └── lwipopts.h          # Common settings for Networking
+│   └── lwipopts.h          # lwIP configuration
 └── build/                  # Generated build files (GitIgnored)
 ```
 
 ### Key Components
 
-1. **Wi-Fi (src/wifi.c):** Handles pico_cyw43_arch initialization and connection.
-2. **Weather (src/weather.c):** Uses raw TCP/LWIP to fetch ASCII text from wttr.in via a hardcoded IP (to bypass DNS issues).
-3. **Display (main.c | GUI_Paint):**
-
-- Initializes the EPD driver.
-- Allocates framebuffers.
-- Parses the ASCII string line-by-line.
-- Renders text using the `GUI_Paint` library.
+The code is layered: main orchestrates, wifi/weather/display are independent domains, and network is a thin wrapper around lwIP's httpc_get_file_dns(). No layer reaches past its immediate dependency.
 
 ## Configuration
 
@@ -87,14 +82,6 @@ Edit `config/secrets.h` with your network details:
 ```C
 #define WIFI_SSID "YourNetworkName"
 #define WIFI_PASS "YourPassword"
-```
-
-### 3. IP Address (Optional)
-
-If wttr.in DNS resolution fails, update the hardcoded ip in `src/weather.c`:
-
-```C
-const char *target_ip_str = "5.9.243.187"; // Replace with current wttr.in IP
 ```
 
 ## Building and Flashing
